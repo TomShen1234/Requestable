@@ -26,6 +26,7 @@ struct RequestView: View {
                 protocolPicker
                 domainTextField
                 pathTextField
+                methodPicker
             }
             
             Section {
@@ -46,9 +47,7 @@ struct RequestView: View {
             
             Section("HTTP Body Content") {
                 customBodyToggle
-                
-                bodyTextEditor
-                    .frame(height: 100)
+                bodyTextEditor.frame(height: 100)
             }
         }
     }
@@ -60,9 +59,13 @@ struct RequestView: View {
                     .labelsHidden()
                     .frame(width: 65)
 
-                domainTextField.frame(minWidth: 140)
+                domainTextField.frame(minWidth: 100)
 
                 pathTextField.frame(minWidth: 140)
+                
+                methodPicker
+                    .labelsHidden()
+                    .frame(width: 80)
             }
 
             GroupBox("URL Path Tokens") {
@@ -100,7 +103,7 @@ struct RequestView: View {
                 .border(.separator)
         }
         .padding()
-        .frame(minWidth: 400, minHeight: 500)
+        .frame(minWidth: 440, minHeight: 500)
         .background(Color.primary.colorInvert())
     }
     #endif
@@ -108,13 +111,21 @@ struct RequestView: View {
     private var protocolPicker: some View {
         Picker("Select Protocol", selection: $requestData.requestProtocol) {
             ForEach(RequestableData.RequestProtocol.allCases, id: \.self) { reqProtocol in
-                Text("\(reqProtocol.displayText())")
+                Text("\(reqProtocol.description)")
+            }
+        }
+    }
+    
+    private var methodPicker: some View {
+        Picker("Select Method", selection: $requestData.requestMethod) {
+            ForEach(RequestableData.RequestMethod.allCases, id: \.self) { method in
+                Text("\(method.description)")
             }
         }
     }
     
     private var domainTextField: some View {
-        TextField("Domain or IP Address", text: $requestData.domain)
+        TextField("Domain/IP", text: $requestData.domain)
 //        #if os(iOS) // TODO: Enable once preview is fixed
 //            .textContentType(.URL)
 //            .keyboardType(.URL)
@@ -143,12 +154,13 @@ struct RequestView: View {
     }
     
     private var customBodyToggle: some View {
-        Toggle("Custom HTTP Body", isOn: .constant(false))
+        Toggle("Custom HTTP Body", isOn: $requestData.useCustomBody)
     }
     
     private var bodyTextEditor: some View {
-        TextEditor(text: .constant("HTTP Body Field"))
+        TextEditor(text: requestData.useCustomBody ? $requestData.customBody : .constant(requestData.generatedBody))
             .font(.custom("Menlo Regular", size: 13, relativeTo: .body))
+            .disabled(!requestData.useCustomBody)
     }
 }
 
@@ -162,7 +174,7 @@ struct RequestView_Previews: PreviewProvider {
         }
         #elseif os(macOS)
         RequestView(requestData: .constant(.init()))
-            .previewLayout(.fixed(width: 400, height: 600))
+            .previewLayout(.fixed(width: 440, height: 600))
         #endif
     }
 }

@@ -8,15 +8,27 @@
 import Foundation
 
 struct RequestableData: Codable {
-    enum RequestProtocol: Codable, CaseIterable {
+    enum RequestProtocol: Codable, CaseIterable, CustomStringConvertible {
         case http, https
         
-        func displayText() -> String {
+        var description: String {
             switch self {
-            case .http:
-                return "http"
-            case .https:
-                return "https"
+            case .http: return "http"
+            case .https: return "https"
+            }
+        }
+    }
+    
+    enum RequestMethod: Codable, CaseIterable, CustomStringConvertible {
+        case post, get, put, patch, delete
+        
+        var description: String {
+            switch self {
+            case .post: return "POST"
+            case .get: return "GET"
+            case .put: return "PUT"
+            case .patch: return "PATCH"
+            case .delete: return "DELETE"
             }
         }
     }
@@ -24,10 +36,25 @@ struct RequestableData: Codable {
     var requestProtocol: RequestProtocol
     var domain: String
     var path: String
+    var requestMethod: RequestMethod
+    
+    var generatedBody: String {
+        return "TODO: Generated Body"
+    }
+    var useCustomBody: Bool {
+        didSet {
+            customBody = useCustomBody ? generatedBody : ""
+        }
+    }
+    var customBody: String
     
     init() {
         requestProtocol = .http
         domain = ""
         path = ""
+        requestMethod = .post
+        
+        useCustomBody = false
+        customBody = ""
     }
 }

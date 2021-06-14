@@ -23,13 +23,21 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         #else
-        Text("iOS Content View")
+        RequestView(requestData: $fileData)
         #endif
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
+        #if os(macOS)
         ContentView(fileData: .constant(.init()))
+        #elseif os(iOS)
+        NavigationView {
+            ContentView(fileData: .constant(.init()))
+                .navigationTitle("Content View Preview")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        #endif
     }
 }
