@@ -7,11 +7,18 @@
 
 import SwiftUI
 
+// TODO: iOS View
 struct ContentView: View {
     @Binding var fileData: RequestableData
 
     var body: some View {
-        TextEditor(text: $fileData.domain)
+        HSplitView {
+            RequestView(requestData: $fileData)
+            
+            Text("Second")
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 }
 
