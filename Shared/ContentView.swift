@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Binding var document: RequestableDocument
+    @Binding var fileData: RequestableData
 
     var body: some View {
-        TextEditor(text: $document.text)
+        TextEditor(text: $fileData.domain)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(document: .constant(RequestableDocument()))
+        ContentView(fileData: .constant(.init()))
     }
 }

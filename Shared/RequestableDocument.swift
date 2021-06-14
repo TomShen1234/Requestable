@@ -5,35 +5,66 @@
 //  Created by Tom Shen on 2021/6/14.
 //
 
+/// The document version used by the app
+let RequestableDocumentVersion = 1
+
 import SwiftUI
 import UniformTypeIdentifiers
 
 extension UTType {
-    static var exampleText: UTType {
-        UTType(importedAs: "com.example.plain-text")
+    static var requestableDocument: UTType {
+        UTType(importedAs: "com.tomandjerry.requestable-req")
     }
 }
 
 struct RequestableDocument: FileDocument {
-    var text: String
+    enum DocumentError: LocalizedError {
+        case incompatibleFileVersion
+        
+        var errorDescription: String? {
+            switch self {
+            case .incompatibleFileVersion: return "The version of this file is incompatible!"
+            }
+        }
+    }
+    
+    var fileData: RequestableFileData
 
-    init(text: String = "Hello, world!") {
-        self.text = text
+    init() {
+        self.fileData = RequestableFileData()
     }
 
-    static var readableContentTypes: [UTType] { [.exampleText] }
+    static var readableContentTypes: [UTType] { [.requestableDocument] }
 
     init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents,
-              let string = String(data: data, encoding: .utf8)
-        else {
+        guard let data = configuration.file.regularFileContents else {
             throw CocoaError(.fileReadCorruptFile)
         }
-        text = string
+        
+        let decoder = JSONDecoder()
+        let decodedData = try decoder.decode(RequestableFileData.self, from: data)
+        
+        if decodedData.documentVersion > RequestableDocumentVersion {
+            throw DocumentError.incompatibleFileVersion
+        }
+        
+        self.fileData = decodedData
     }
     
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let data = text.data(using: .utf8)!
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(fileData)
         return .init(regularFileWithContents: data)
+    }
+}
+
+struct RequestableFileData: Codable {
+    var documentVersion: Int
+    var fileContent: RequestableData
+    
+    /// Initialize with default values
+    init() {
+        documentVersion = RequestableDocumentVersion
+        fileContent = RequestableData()
     }
 }

@@ -15,6 +15,8 @@
 		D0C9245E267710ED00D93FAE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C92448267710EC00D93FAE /* ContentView.swift */; };
 		D0C9245F267710ED00D93FAE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0C92449267710ED00D93FAE /* Assets.xcassets */; };
 		D0C92460267710ED00D93FAE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D0C92449267710ED00D93FAE /* Assets.xcassets */; };
+		D0C9246A267712BA00D93FAE /* RequestableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C92469267712BA00D93FAE /* RequestableData.swift */; };
+		D0C9246B267712BA00D93FAE /* RequestableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C92469267712BA00D93FAE /* RequestableData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +28,7 @@
 		D0C92451267710ED00D93FAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D0C92456267710ED00D93FAE /* Requestable.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Requestable.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0C92458267710ED00D93FAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0C92469267712BA00D93FAE /* RequestableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestableData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +64,7 @@
 			children = (
 				D0C92446267710EC00D93FAE /* RequestableApp.swift */,
 				D0C92447267710EC00D93FAE /* RequestableDocument.swift */,
+				D0C92469267712BA00D93FAE /* RequestableData.swift */,
 				D0C92448267710EC00D93FAE /* ContentView.swift */,
 				D0C92449267710ED00D93FAE /* Assets.xcassets */,
 			);
@@ -193,6 +197,7 @@
 				D0C9245B267710ED00D93FAE /* RequestableDocument.swift in Sources */,
 				D0C92459267710ED00D93FAE /* RequestableApp.swift in Sources */,
 				D0C9245D267710ED00D93FAE /* ContentView.swift in Sources */,
+				D0C9246A267712BA00D93FAE /* RequestableData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,6 +208,7 @@
 				D0C9245C267710ED00D93FAE /* RequestableDocument.swift in Sources */,
 				D0C9245A267710ED00D93FAE /* RequestableApp.swift in Sources */,
 				D0C9245E267710ED00D93FAE /* ContentView.swift in Sources */,
+				D0C9246B267712BA00D93FAE /* RequestableData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,6 +337,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleExecutable = Requestable;
+				INFOPLIST_KEY_CFBundleName = Requestable;
+				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -364,6 +373,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleExecutable = Requestable;
+				INFOPLIST_KEY_CFBundleName = Requestable;
+				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -402,6 +414,9 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = macOS/Info.plist;
+				INFOPLIST_KEY_CFBundleExecutable = Requestable;
+				INFOPLIST_KEY_CFBundleName = Requestable;
+				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -432,6 +447,9 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = macOS/Info.plist;
+				INFOPLIST_KEY_CFBundleExecutable = Requestable;
+				INFOPLIST_KEY_CFBundleName = Requestable;
+				INFOPLIST_KEY_CFBundleVersion = 1;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
