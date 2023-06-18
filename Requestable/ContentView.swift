@@ -11,7 +11,12 @@ struct ContentView: View {
     @Binding var fileData: RequestableData
 
     var body: some View {
+        #if os(macOS)
+        // TODO: Split View
         RequestView(requestData: $fileData)
+        #elseif os(iOS)
+        RequestView(requestData: $fileData)
+        #endif
     }
 }
 
