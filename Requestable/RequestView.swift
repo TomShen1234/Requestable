@@ -11,12 +11,20 @@ import SwiftUI
 struct RequestView: View {
     @Binding var requestData: RequestableData
     
+    @State private var editTokenKey = ""
+    @State private var showTokenEditor = false
+    
     var body: some View {
-        #if os(macOS)
-        macView
-        #elseif os(iOS)
-        iosView
-        #endif
+        Group {
+            #if os(macOS)
+            macView
+            #elseif os(iOS)
+            iosView
+            #endif
+        }
+        .sheet(isPresented: $showTokenEditor) {
+            SimpleInputSheets(title: "Edit token: \(editTokenKey)", modifyingText: $requestData.tokens[editTokenKey])
+        }
     }
     
     #if os(iOS)
@@ -61,7 +69,11 @@ struct RequestView: View {
 
                 domainTextField.frame(minWidth: 100)
 
-                pathTextField.frame(minWidth: 140)
+                pathTextField
+                    .frame(minWidth: 140)
+                    .onChange(of: requestData.path) { _, newValue in
+                        requestData.updateTokens(from: newValue)
+                    }
                 
                 methodPicker
                     .labelsHidden()
@@ -70,12 +82,19 @@ struct RequestView: View {
 
             GroupBox("URL Path Tokens") {
                 Group {
-                    Text("Prefix path component with colon (:) to use tokens")
+                    if requestData.tokens.isEmpty {
+                        Text("Prefix path component with colon (:) to use tokens")
+                    } else {
+                        List {
+                            pathTokenList
+                                .buttonStyle(.plain)
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, minHeight: 75)
             }
 
-            Text("(Full URL goes here)")
+            fullURLPreview
                 .textSelection(.enabled)
 
             Divider()
@@ -140,8 +159,25 @@ struct RequestView: View {
 //        #endif
     }
     
+    private var pathTokenList: some View {
+        ForEach(Array(requestData.tokens.keys), id: \.self) { tokenKey in
+            Button {
+                editTokenKey = tokenKey
+                showTokenEditor = true
+            } label: {
+                HStack {
+                    Text("\(tokenKey)")
+                    Spacer()
+                    let tokenValue = requestData.tokens[tokenKey]!
+                    Text("\(tokenValue)")
+                }
+                .contentShape(Rectangle())
+            }
+        }
+    }
+    
     private var fullURLPreview: some View {
-        Text("(Full URL goes here)")
+        Text(requestData.generateURL()?.absoluteString ?? "Invalid URL")
     }
     
     private var authenticationButton: some View {
@@ -164,17 +200,14 @@ struct RequestView: View {
     }
 }
 
-struct RequestView_Previews: PreviewProvider {
-    static var previews: some View {
-        #if os(iOS)
-        NavigationView {
-            RequestView(requestData: .constant(.init()))
-                .navigationTitle("Request Preview")
-                .navigationBarTitleDisplayMode(.inline)
-        }
-        #elseif os(macOS)
+#Preview {
+    #if os(iOS)
+    NavigationView {
         RequestView(requestData: .constant(.init()))
-            .previewLayout(.fixed(width: 440, height: 600))
-        #endif
+            .navigationTitle("Request Preview")
+            .navigationBarTitleDisplayMode(.inline)
     }
+    #elseif os(macOS)
+    RequestView(requestData: .constant(.init()))
+    #endif
 }
