@@ -44,7 +44,7 @@ struct RequestableDocument: FileDocument {
         let decoder = JSONDecoder()
         let decodedData = try decoder.decode(RequestableFileData.self, from: data)
         
-        if decodedData.documentVersion > RequestableDocumentVersion {
+        if decodedData.version > RequestableDocumentVersion {
             throw DocumentError.incompatibleFileVersion
         }
         
@@ -59,12 +59,12 @@ struct RequestableDocument: FileDocument {
 }
 
 struct RequestableFileData: Codable {
-    var documentVersion: Int
-    var fileContent: RequestableData
+    var version: Int
+    var data: RequestableData
     
     /// Initialize with default values
     init() {
-        documentVersion = RequestableDocumentVersion
-        fileContent = RequestableData()
+        version = RequestableDocumentVersion
+        data = RequestableData()
     }
 }

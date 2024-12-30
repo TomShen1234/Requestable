@@ -52,6 +52,8 @@ struct RequestView: View {
                         Image(systemName: "play.fill")
                     }
                 }
+                .keyboardShortcut("r", modifiers: .command)
+                .help("Run the URL request (⌘R)")
             }
         }
         .alert("Cannot perform request due to invalid URL", isPresented: $cannotPerformRequest) {}

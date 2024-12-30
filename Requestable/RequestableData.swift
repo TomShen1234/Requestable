@@ -139,7 +139,7 @@ struct RequestableData: Codable {
         let domainWithProtocol = requestProtocol.description + "://" + domain + "/"
         var urlComponents = URLComponents(string: domainWithProtocol)
         urlComponents?.path = "/\(path)"
-        if includesQueryParams {
+        if includesQueryParams && !bodyParameters.keys.isEmpty {
             urlComponents?.queryItems = bodyParameters.map({ URLQueryItem(name: $0.key, value: $0.value) })
         }
         return urlComponents?.url
@@ -167,8 +167,11 @@ final class RequestManager: ObservableObject {
     
     @Published var response: HTTPURLResponse?
     @Published var responseData: Data?
+    @Published var responseDataJSON: Any?
     
     @Published var responseHeader: String = ""
+    
+    @Published var isResultJSON: Bool = false
     
     func performRequest(with url: URL, method: RequestableData.RequestMethod, body: String) {
         state = .loading
@@ -203,14 +206,27 @@ final class RequestManager: ObservableObject {
         }
     }
     
+    private func checkIfFileIsJSON() {
+        if let responseData {
+            responseDataJSON = try? JSONSerialization.jsonObject(with: responseData, options: [])
+            isResultJSON = responseDataJSON != nil
+        }
+    }
+    
     @MainActor private func success(data: Data, response res: HTTPURLResponse) {
         response = res
         responseData = data
         state = .finished
         makeRequestHeader()
+        checkIfFileIsJSON()
     }
     
     @MainActor private func error(_ error: Error) {
         state = .failed(error: error.localizedDescription)
+    }
+    
+    func prettifyJSONResponse() {
+        guard let json = responseDataJSON else { return }
+        self.responseData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
     }
 }

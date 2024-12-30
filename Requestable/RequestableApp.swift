@@ -11,7 +11,7 @@ import SwiftUI
 struct RequestableApp: App {
     var body: some Scene {
         DocumentGroup(newDocument: RequestableDocument()) { file in
-            ContentView(fileData: file.$document.fileData.fileContent)
+            ContentView(fileData: file.$document.fileData.data)
         }
     }
 }
