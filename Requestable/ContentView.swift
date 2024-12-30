@@ -9,14 +9,21 @@ import SwiftUI
 
 struct ContentView: View {
     @Binding var fileData: RequestableData
+    
+    @StateObject private var requestManager = RequestManager()
 
     var body: some View {
-        #if os(macOS)
-        // TODO: Split View
-        RequestView(requestData: $fileData)
-        #elseif os(iOS)
-        RequestView(requestData: $fileData)
-        #endif
+        Group {
+            #if os(macOS)
+            HSplitView {
+                RequestView(requestData: $fileData)
+                ResponseView(requestData: fileData)
+            }
+            #elseif os(iOS)
+            RequestView(requestData: $fileData)
+            #endif
+        }
+        .environmentObject(requestManager)
     }
 }
 

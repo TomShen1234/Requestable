@@ -11,8 +11,15 @@ import SwiftUI
 struct RequestView: View {
     @Binding var requestData: RequestableData
     
+    @EnvironmentObject private var requestManager: RequestManager
+    
     @State private var editTokenKey = ""
     @State private var showTokenEditor = false
+    
+    @State private var editBodyParamKey = ""
+    @State private var showBodyParamEditor = false
+    
+    @State private var cannotPerformRequest = false
     
     var body: some View {
         Group {
@@ -25,6 +32,29 @@ struct RequestView: View {
         .sheet(isPresented: $showTokenEditor) {
             SimpleInputSheets(title: "Edit token: \(editTokenKey)", modifyingText: $requestData.tokens[editTokenKey])
         }
+        .sheet(isPresented: $showBodyParamEditor) {
+            KeyValueSheet(modifyKey: editBodyParamKey, modifyingDictionary: $requestData.bodyParameters)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    // For now, only GET parameter will support query parameters
+                    let useQueryParameter = requestData.requestMethod == .get
+                    if let url = requestData.generateURL(includesQueryParams: useQueryParameter) {
+                        requestManager.performRequest(with: url, method: requestData.requestMethod, body: requestData.generatedBody)
+                    } else {
+                        cannotPerformRequest = true
+                    }
+                } label: {
+                    Label {
+                        Text("Run Request")
+                    } icon: {
+                        Image(systemName: "play.fill")
+                    }
+                }
+            }
+        }
+        .alert("Cannot perform request due to invalid URL", isPresented: $cannotPerformRequest) {}
     }
     
     #if os(iOS)
@@ -87,7 +117,6 @@ struct RequestView: View {
                     } else {
                         List {
                             pathTokenList
-                                .buttonStyle(.plain)
                         }
                     }
                 }
@@ -105,16 +134,23 @@ struct RequestView: View {
                         .frame(maxWidth: .infinity, minHeight: 75)
                 }
             }
-            .overlay(authenticationButton.controlSize(.mini), alignment: .topTrailing)
+            .overlay(authenticationButton, alignment: .topTrailing)
 
             Divider()
 
-            GroupBox("HTTP Body") {
-                VStack {
-                    Text("HTTP Body Parameters")
-                        .frame(maxWidth: .infinity, minHeight: 75)
+            GroupBox("HTTP Body / Query Parameters") {
+                Group {
+                    if requestData.bodyParameters.isEmpty {
+                        Text("HTTP Body Parameters")
+                    } else {
+                        List {
+                            bodyParameterList
+                        }
+                    }
                 }
+                .frame(maxWidth: .infinity, minHeight: 75)
             }
+            .overlay(addBodyParameterButton, alignment: .topTrailing)
 
             customBodyToggle
             bodyTextEditor
@@ -122,7 +158,7 @@ struct RequestView: View {
                 .border(.separator)
         }
         .padding()
-        .frame(minWidth: 440, minHeight: 500)
+        .frame(minWidth: 440, idealWidth: 460, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
         .background(Color.primary.colorInvert())
     }
     #endif
@@ -160,19 +196,9 @@ struct RequestView: View {
     }
     
     private var pathTokenList: some View {
-        ForEach(Array(requestData.tokens.keys), id: \.self) { tokenKey in
-            Button {
-                editTokenKey = tokenKey
-                showTokenEditor = true
-            } label: {
-                HStack {
-                    Text("\(tokenKey)")
-                    Spacer()
-                    let tokenValue = requestData.tokens[tokenKey]!
-                    Text("\(tokenValue)")
-                }
-                .contentShape(Rectangle())
-            }
+        DictionaryForEachListContent(dictionary: requestData.tokens) { clickedTokenKey in
+            editTokenKey = clickedTokenKey
+            showTokenEditor = true
         }
     }
     
@@ -184,19 +210,37 @@ struct RequestView: View {
         Button("Authentication") {
             print("Show authentication sheet")
         }
-//        #if os(macOS) // TODO: Enable once preview is fixed
-//        .controlSize(.mini)
-//        #endif
+        #if os(macOS)
+        .controlSize(.mini)
+        #endif
+    }
+    
+    private var addBodyParameterButton: some View {
+        Button("+") {
+            editBodyParamKey = ""
+            showBodyParamEditor = true
+        }
+        #if os(macOS)
+        .controlSize(.mini)
+        #endif
+    }
+    
+    private var bodyParameterList: some View {
+        DictionaryForEachListContent(dictionary: requestData.bodyParameters) { clickedParamKey in
+            editBodyParamKey = clickedParamKey
+            showBodyParamEditor = true
+        }
     }
     
     private var customBodyToggle: some View {
         Toggle("Custom HTTP Body", isOn: $requestData.useCustomBody)
+            .disabled(true) // TODO: Enable this
     }
     
     private var bodyTextEditor: some View {
         TextEditor(text: requestData.useCustomBody ? $requestData.customBody : .constant(requestData.generatedBody))
             .font(.custom("Menlo Regular", size: 13, relativeTo: .body))
-            .disabled(!requestData.useCustomBody)
+//            .disabled(!requestData.useCustomBody)
     }
 }
 

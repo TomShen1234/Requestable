@@ -50,19 +50,29 @@ struct RequestableData: Codable {
     var path: String
     var requestMethod: RequestMethod
     
-    var generatedBody: String {
-        return "TODO: Generated Body"
-    }
-    var useCustomBody: Bool {
-        didSet {
-            customBody = useCustomBody ? generatedBody : ""
-        }
-    }
-    var customBody: String
-    
     var tokens: [String: String]
     
     var bodyParameters: [String: String]
+    
+    var generatedBody: String {
+        if useCustomBody {
+            return customBody
+        } else if requestMethod == .get {
+            // Encode item as URL encoded form data for display only
+            let resultURL = generateURL(includesQueryParams: true)
+            return resultURL?.absoluteString ?? "Invalid URL"
+        } else {
+            let jsonEncoder = JSONEncoder()
+            jsonEncoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            if let data = try? jsonEncoder.encode(bodyParameters) {
+                return String(decoding: data, as: UTF8.self)
+            } else {
+                return "Cannot encode body as JSON."
+            }
+        }
+    }
+    var useCustomBody: Bool
+    var customBody: String
     
     init() {
         requestProtocol = .http
@@ -114,7 +124,7 @@ struct RequestableData: Codable {
         }
     }
     
-    func generateURL() -> URL? {
+    func generateURL(includesQueryParams: Bool = false) -> URL? {
         // Process path components
         var pathComponents = stringPathComponents(from: path)
         for token in tokens {
@@ -129,6 +139,78 @@ struct RequestableData: Codable {
         let domainWithProtocol = requestProtocol.description + "://" + domain + "/"
         var urlComponents = URLComponents(string: domainWithProtocol)
         urlComponents?.path = "/\(path)"
+        if includesQueryParams {
+            urlComponents?.queryItems = bodyParameters.map({ URLQueryItem(name: $0.key, value: $0.value) })
+        }
         return urlComponents?.url
+    }
+}
+
+final class RequestManager: ObservableObject {
+    enum State: CustomStringConvertible, Equatable {
+        case idle
+        case loading
+        case finished
+        case failed(error: String)
+        
+        var description: String {
+            switch self {
+            case .idle: "Waiting for request..."
+            case .loading: "Loading..."
+            case .finished: "Got Results"
+            case .failed(let error): "Error: \(error)"
+            }
+        }
+    }
+    
+    @Published var state: State = .idle
+    
+    @Published var response: HTTPURLResponse?
+    @Published var responseData: Data?
+    
+    @Published var responseHeader: String = ""
+    
+    func performRequest(with url: URL, method: RequestableData.RequestMethod, body: String) {
+        state = .loading
+        
+        Task {
+            do {
+                var request = URLRequest(url: url)
+                request.httpMethod = method.description
+                if method != .get {
+                    let bodyData = body.data(using: .utf8)!
+                    request.httpBody = bodyData
+                }
+                let (data, response) = try await URLSession.shared.data(for: request)
+                await self.success(data: data, response: response as! HTTPURLResponse)
+            } catch {
+                await self.error(error)
+            }
+        }
+    }
+    
+    private func makeRequestHeader() {
+        if let response {
+            // Get a sorted key array
+            let sortedKeys = response.allHeaderFields.keys.map(String.init).sorted()
+            responseHeader =  sortedKeys.reduce("") { partialResult, key in
+                let value = response.allHeaderFields[key] as? String
+                return partialResult + "\(key): \(value ?? "")\n"
+            } // Strip last newline
+            .trimmingCharacters(in: .newlines)
+        } else {
+            responseHeader = ""
+        }
+    }
+    
+    @MainActor private func success(data: Data, response res: HTTPURLResponse) {
+        response = res
+        responseData = data
+        state = .finished
+        makeRequestHeader()
+    }
+    
+    @MainActor private func error(_ error: Error) {
+        state = .failed(error: error.localizedDescription)
     }
 }
