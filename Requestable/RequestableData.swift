@@ -92,7 +92,7 @@ struct RequestableData: Codable {
     }
     
     private func stringPathComponents(from path: String) -> [String] {
-        return path.split(separator: "/").map(String.init)
+        path.split(separator: "/").map(String.init)
     }
     
     private func tokenPathComponents(from path: String) -> [String] {
@@ -142,6 +142,10 @@ struct RequestableData: Codable {
         let domainWithProtocol = requestProtocol.description + "://" + domain + "/"
         var urlComponents = URLComponents(string: domainWithProtocol)
         urlComponents?.path = "/\(path)"
+        if self.path.last == "/" {
+            // Add the trailing / back if necessary
+            urlComponents?.path += "/"
+        }
         if includesQueryParams && !bodyParameters.keys.isEmpty {
             urlComponents?.queryItems = bodyParameters.map({ URLQueryItem(name: $0.key, value: $0.value) })
         }
@@ -190,6 +194,10 @@ final class RequestManager: ObservableObject {
                 for (key, value) in headers {
                     request.addValue(value, forHTTPHeaderField: key)
                 }
+                if case .post = method {
+                    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                }
+                request.addValue("Basic dGVzdHVzZXI6dGVzdDEyMw==", forHTTPHeaderField: "authorization")
                 let (data, response) = try await URLSession.shared.data(for: request)
                 await self.success(data: data, response: response as! HTTPURLResponse)
             } catch {

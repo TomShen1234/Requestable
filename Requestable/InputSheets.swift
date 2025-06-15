@@ -72,6 +72,52 @@ struct KeyValueSheet: View {
     }
 }
 
+struct BasicAuthorizationSheet: View {
+    @State private var username: String = ""
+    @State private var password: String = ""
+    
+    @Environment(\.dismiss) private var dismiss
+    @Binding var modifyingDictionary: [String: String]
+    
+    var body: some View {
+        VStack {
+            Text("Edit Basic Authorization")
+            TextField("Username", text: $username)
+            TextField("Password", text: $password)
+            HStack {
+                Button("Cancel") {
+                    dismiss()
+                }
+                
+                Button("Save") {
+                    let newPassString = "\(username):\(password)"
+                    if let data = newPassString.data(using: .utf8) {
+                        let base64String = data.base64EncodedString()
+                        modifyingDictionary["Authorization"] = "Basic \(base64String)"
+                    }
+                    dismiss()
+                }
+                .disabled(username.isEmpty)
+            }
+            Text("Note: This information is stored as plain text")
+                .font(.caption)
+        }
+        .padding()
+        .onAppear {
+            guard var authorizationHeader = modifyingDictionary["Authorization"] else { return }
+            // Remove the 'Basic ' text
+            let suffixStartIndex = authorizationHeader.index(authorizationHeader.startIndex, offsetBy: 6)
+            authorizationHeader = String(authorizationHeader.suffix(from: suffixStartIndex))
+            guard let decodedAuthData = Data(base64Encoded: authorizationHeader) else { return }
+            guard let decodedAuth = String(data: decodedAuthData, encoding: .utf8) else { return }
+            let authSplit = decodedAuth.split(separator: ":")
+            guard authSplit.count == 2 else { return }
+            username = String(authSplit[0])
+            password = String(authSplit[1])
+        }
+    }
+}
+
 #Preview {
     SimpleInputSheets(title: "Input Preview", modifyingText: .constant("Test"))
 }

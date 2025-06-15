@@ -19,6 +19,8 @@ struct RequestView: View {
     @State private var editHeaderParamKey = ""
     @State private var showHeaderParamEditor = false
     
+    @State private var editAuthorization = false
+    
     @State private var editBodyParamKey = ""
     @State private var showBodyParamEditor = false
     
@@ -40,6 +42,9 @@ struct RequestView: View {
         }
         .sheet(isPresented: $showBodyParamEditor) {
             KeyValueSheet(modifyKey: editBodyParamKey, modifyingDictionary: $requestData.bodyParameters)
+        }
+        .sheet(isPresented: $editAuthorization) {
+            BasicAuthorizationSheet(modifyingDictionary: $requestData.headers)
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -225,7 +230,7 @@ struct RequestView: View {
     
     private var authenticationButton: some View {
         Button("Authentication") {
-            print("Show authentication sheet")
+            editAuthorization = true
         }
         #if os(macOS)
         .controlSize(.mini)
