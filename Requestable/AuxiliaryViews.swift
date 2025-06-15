@@ -9,24 +9,45 @@ import SwiftUI
 
 /// A simple helper that displays key-value pairs of a `[String: String]` dictionary
 struct DictionaryForEachListContent: View {
-    var dictionary: [String: String]
+    @Binding var dictionary: [String: String]
+    var immutable = false
     var onClick: (String) -> Void
     
+    private func makeButton(key: String) -> some View {
+        Button {
+            onClick(key)
+        } label: {
+            HStack {
+                Text(key)
+                Spacer()
+                let value = dictionary[key]
+                Text(value ?? "")
+            }
+            .contentShape(Rectangle())
+        }
+    }
+    
     var body: some View {
-        ForEach(Array(dictionary.keys), id: \.self) { key in
-            Button {
-                onClick(key)
-            } label: {
-                HStack {
-                    Text(key)
-                    Spacer()
-                    let value = dictionary[key]
-                    Text(value ?? "")
+        Group {
+            if immutable {
+                ForEach(Array(dictionary.keys), id: \.self) { key in
+                    makeButton(key: key)
                 }
-                .contentShape(Rectangle())
+            } else {
+                ForEach(Array(dictionary.keys), id: \.self) { key in
+                    makeButton(key: key)
+                } // Make the list modifiable (for header and body table, etc.)
+                .onDelete(perform: delete)
             }
         }
         .buttonStyle(.plain)
+    }
+    
+    private func delete(_ indexSet: IndexSet) {
+        let keys = Array(dictionary.keys)
+        for index in indexSet {
+            dictionary.removeValue(forKey: keys[index])
+        }
     }
 }
 

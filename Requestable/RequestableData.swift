@@ -52,6 +52,8 @@ struct RequestableData: Codable {
     
     var tokens: [String: String]
     
+    var headers: [String: String]
+    
     var bodyParameters: [String: String]
     
     var generatedBody: String {
@@ -85,6 +87,7 @@ struct RequestableData: Codable {
         
         tokens = [:]
         
+        headers = [:]
         bodyParameters = [:]
     }
     
@@ -173,7 +176,7 @@ final class RequestManager: ObservableObject {
     
     @Published var isResultJSON: Bool = false
     
-    func performRequest(with url: URL, method: RequestableData.RequestMethod, body: String) {
+    func performRequest(with url: URL, method: RequestableData.RequestMethod, headers: [String:String], body: String) {
         state = .loading
         
         Task {
@@ -183,6 +186,9 @@ final class RequestManager: ObservableObject {
                 if method != .get {
                     let bodyData = body.data(using: .utf8)!
                     request.httpBody = bodyData
+                }
+                for (key, value) in headers {
+                    request.addValue(value, forHTTPHeaderField: key)
                 }
                 let (data, response) = try await URLSession.shared.data(for: request)
                 await self.success(data: data, response: response as! HTTPURLResponse)

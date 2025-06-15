@@ -16,6 +16,9 @@ struct RequestView: View {
     @State private var editTokenKey = ""
     @State private var showTokenEditor = false
     
+    @State private var editHeaderParamKey = ""
+    @State private var showHeaderParamEditor = false
+    
     @State private var editBodyParamKey = ""
     @State private var showBodyParamEditor = false
     
@@ -32,6 +35,9 @@ struct RequestView: View {
         .sheet(isPresented: $showTokenEditor) {
             SimpleInputSheets(title: "Edit token: \(editTokenKey)", modifyingText: $requestData.tokens[editTokenKey])
         }
+        .sheet(isPresented: $showHeaderParamEditor) {
+            KeyValueSheet(modifyKey: editHeaderParamKey, modifyingDictionary: $requestData.headers)
+        }
         .sheet(isPresented: $showBodyParamEditor) {
             KeyValueSheet(modifyKey: editBodyParamKey, modifyingDictionary: $requestData.bodyParameters)
         }
@@ -41,7 +47,7 @@ struct RequestView: View {
                     // For now, only GET parameter will support query parameters
                     let useQueryParameter = requestData.requestMethod == .get
                     if let url = requestData.generateURL(includesQueryParams: useQueryParameter) {
-                        requestManager.performRequest(with: url, method: requestData.requestMethod, body: requestData.generatedBody)
+                        requestManager.performRequest(with: url, method: requestData.requestMethod, headers: requestData.headers, body: requestData.generatedBody)
                     } else {
                         cannotPerformRequest = true
                     }
@@ -131,12 +137,21 @@ struct RequestView: View {
             Divider()
 
             GroupBox("URL Header") {
-                VStack {
-                    Text("Table with header informations")
-                        .frame(maxWidth: .infinity, minHeight: 75)
+                Group {
+                    if requestData.headers.isEmpty {
+                        Text("HTTP Headers")
+                    } else {
+                        List {
+                            headerParameterList
+                        }
+                    }
                 }
+                .frame(maxWidth: .infinity, minHeight: 75)
             }
-            .overlay(authenticationButton, alignment: .topTrailing)
+            .overlay(HStack {
+                authenticationButton
+                addHeaderParameterButton
+            }, alignment: .topTrailing)
 
             Divider()
 
@@ -198,7 +213,7 @@ struct RequestView: View {
     }
     
     private var pathTokenList: some View {
-        DictionaryForEachListContent(dictionary: requestData.tokens) { clickedTokenKey in
+        DictionaryForEachListContent(dictionary: $requestData.tokens, immutable: true) { clickedTokenKey in
             editTokenKey = clickedTokenKey
             showTokenEditor = true
         }
@@ -217,6 +232,23 @@ struct RequestView: View {
         #endif
     }
     
+    private var addHeaderParameterButton: some View {
+        Button("+") {
+            editHeaderParamKey = ""
+            showHeaderParamEditor = true
+        }
+        #if os(macOS)
+        .controlSize(.mini)
+        #endif
+    }
+    
+    private var headerParameterList: some View {
+        DictionaryForEachListContent(dictionary: $requestData.headers) { clickedParamKey in
+            editHeaderParamKey = clickedParamKey
+            showHeaderParamEditor = true
+        }
+    }
+    
     private var addBodyParameterButton: some View {
         Button("+") {
             editBodyParamKey = ""
@@ -228,7 +260,7 @@ struct RequestView: View {
     }
     
     private var bodyParameterList: some View {
-        DictionaryForEachListContent(dictionary: requestData.bodyParameters) { clickedParamKey in
+        DictionaryForEachListContent(dictionary: $requestData.bodyParameters) { clickedParamKey in
             editBodyParamKey = clickedParamKey
             showBodyParamEditor = true
         }
