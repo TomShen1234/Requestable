@@ -197,7 +197,6 @@ final class RequestManager: ObservableObject {
                 if case .post = method {
                     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
                 }
-                request.addValue("Basic dGVzdHVzZXI6dGVzdDEyMw==", forHTTPHeaderField: "authorization")
                 let (data, response) = try await URLSession.shared.data(for: request)
                 await self.success(data: data, response: response as! HTTPURLResponse)
             } catch {
